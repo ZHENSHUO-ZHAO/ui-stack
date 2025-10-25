@@ -9,7 +9,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/16/solid";
 
 export default function DisclosureUI() {
   return (
-    <div className="flex flex-col bg-slate-600 w-lg rounded-lg divide-y divide-slate-500">
+    <div className="flex flex-col bg-slate-600 w-xs rounded-lg divide-y divide-slate-500">
       <Disclosure as="div" className="group" defaultOpen={true}>
         <DisclosureButton className="p-4 flex items-center w-full justify-between">
           <span className="group-hover:text-sky-300">Shipment</span>
