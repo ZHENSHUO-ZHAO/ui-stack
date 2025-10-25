@@ -1,10 +1,10 @@
 import type React from "react";
-import DropdownMenu from "./components/DropdownMenu";
+import DisclosureUI from "./components/DisclosureUI";
 
 function App() {
   return (
     <>
-      <DropdownMenu />
+      <DisclosureUI />
       <div>
         <p className="text-amber-600">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore
@@ -15,7 +15,9 @@ function App() {
       </div>
       <MyDiv>
         {Array.from("123").map((id) => (
-          <MyBtn id={id}>Button {id}</MyBtn>
+          <MyBtn key={id} id={id}>
+            Button {id}
+          </MyBtn>
         ))}
       </MyDiv>
     </>
