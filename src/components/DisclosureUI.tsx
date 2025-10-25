@@ -11,10 +11,10 @@ export default function DisclosureUI() {
   return (
     <div className="flex flex-col bg-slate-600 w-xs rounded-lg divide-y divide-slate-500">
       <Disclosure as="div" className="group" defaultOpen={true}>
-        <DisclosureButton className="p-4 flex items-center w-full justify-between">
+        <DisclosureButton className="text-xl p-4 flex items-center w-full justify-between">
           <span className="group-hover:text-sky-300">Shipment</span>
-          <ChevronDownIcon className="size-4 group-data-open:hidden group-hover:text-sky-300" />
-          <ChevronUpIcon className="size-4 not-group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronDownIcon className="size-6 group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronUpIcon className="size-6 not-group-data-open:hidden group-hover:text-sky-300" />
         </DisclosureButton>
         <DisclosurePanel
           transition
@@ -31,10 +31,10 @@ export default function DisclosureUI() {
         </DisclosurePanel>
       </Disclosure>
       <Disclosure as="div" className="group">
-        <DisclosureButton className="p-4 flex items-center w-full justify-between">
+        <DisclosureButton className="text-xl p-4 flex items-center w-full justify-between">
           <span className="group-hover:text-sky-300">Cost</span>
-          <ChevronDownIcon className="size-4 group-data-open:hidden group-hover:text-sky-300" />
-          <ChevronUpIcon className="size-4 not-group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronDownIcon className="size-6 group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronUpIcon className="size-6 not-group-data-open:hidden group-hover:text-sky-300" />
         </DisclosureButton>
         <DisclosurePanel
           transition
@@ -51,10 +51,10 @@ export default function DisclosureUI() {
         </DisclosurePanel>
       </Disclosure>
       <Disclosure as="div" className="group">
-        <DisclosureButton className="p-4 flex items-center w-full justify-between">
+        <DisclosureButton className="text-xl p-4 flex items-center w-full justify-between">
           <span className="group-hover:text-sky-300">Refund</span>
-          <ChevronDownIcon className="size-4 group-data-open:hidden group-hover:text-sky-300" />
-          <ChevronUpIcon className="size-4 not-group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronDownIcon className="size-6 group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronUpIcon className="size-6 not-group-data-open:hidden group-hover:text-sky-300" />
         </DisclosureButton>
         <DisclosurePanel
           transition
@@ -66,10 +66,10 @@ export default function DisclosureUI() {
         </DisclosurePanel>
       </Disclosure>
       <Disclosure as="div" className="group">
-        <DisclosureButton className="p-4 flex items-center w-full justify-between">
+        <DisclosureButton className="text-xl p-4 flex items-center w-full justify-between">
           <span className="group-hover:text-sky-300">Search</span>
-          <ChevronDownIcon className="size-4 group-data-open:hidden group-hover:text-sky-300" />
-          <ChevronUpIcon className="size-4 not-group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronDownIcon className="size-6 group-data-open:hidden group-hover:text-sky-300" />
+          <ChevronUpIcon className="size-6 not-group-data-open:hidden group-hover:text-sky-300" />
         </DisclosureButton>
         <DisclosurePanel
           transition
