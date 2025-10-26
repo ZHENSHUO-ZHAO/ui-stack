@@ -26,9 +26,15 @@ export default function DialogBox({
 
   return (
     <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative">
-      <DialogBackdrop className="fixed inset-0 bg-blue-900/50 backdrop-blur-xs"></DialogBackdrop>
+      <DialogBackdrop
+        transition
+        className="fixed inset-0 bg-blue-900/50 backdrop-blur-xs duration-300 ease-out data-closed:opacity-0"
+      />
       <div className="fixed inset-0 flex justify-center items-center">
-        <DialogPanel className="space-y-4 min-w-1/4 max-w-1/3 bg-gray-600 rounded-lg py-6">
+        <DialogPanel
+          transition
+          className="space-y-4 min-w-1/4 max-w-1/3 bg-gray-600 rounded-lg py-6 duration-300 ease-out data-closed:scale-95 data-closed:opacity-0"
+        >
           <DialogTitle className="text-2xl w-full text-center border-b border-slate-500 pb-2">
             Notification
           </DialogTitle>
