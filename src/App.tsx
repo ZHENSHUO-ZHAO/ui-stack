@@ -1,13 +1,19 @@
 import type React from "react";
 import DisclosureUI from "./components/DisclosureUI";
 import DialogBox from "./components/DialogBox";
+import DropdownMenu from "./components/DropdownMenu";
+import PopoverSideMenu from "./components/PopoverSideMenu";
+import PopoverTabs from "./components/PopoverTabs";
 
 function App() {
   let dialogApi: { open: () => void };
 
   return (
     <>
+      <PopoverSideMenu />
+      <PopoverTabs />
       <DisclosureUI />
+      <DropdownMenu />
       <div>
         <p className="text-amber-600">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore
@@ -20,7 +26,7 @@ function App() {
         onClick={() => dialogApi.open()}
         className="bg-sky-400 text-2xl text-slate-300 block px-2 py-1 rounded-lg hover:bg-sky-700"
       >
-        Open
+        Open Dialog
       </button>
       <DialogBox
         getApi={(api) => {
