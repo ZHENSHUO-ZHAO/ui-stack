@@ -4,6 +4,7 @@ import DialogBox from "./components/DialogBox";
 import DropdownMenu from "./components/DropdownMenu";
 import PopoverSideMenu from "./components/PopoverSideMenu";
 import PopoverTabs from "./components/PopoverTabs";
+import TabsUI from "./components/tabsUI";
 
 function App() {
   let dialogApi: { open: () => void };
@@ -14,6 +15,7 @@ function App() {
       <PopoverTabs />
       <DisclosureUI />
       <DropdownMenu />
+      <TabsUI />
       <div>
         <p className="text-amber-600">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore
