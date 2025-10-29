@@ -5,6 +5,7 @@ import DropdownMenu from "./components/DropdownMenu";
 import PopoverSideMenu from "./components/PopoverSideMenu";
 import PopoverTabs from "./components/PopoverTabs";
 import TabsUI from "./components/tabsUI";
+import TransitionUI from "./components/TransitionUI";
 
 function App() {
   let dialogApi: { open: () => void };
@@ -35,6 +36,7 @@ function App() {
           dialogApi = api;
         }}
       ></DialogBox>
+      <TransitionUI />
       <MyDiv>
         {Array.from("123").map((id) => (
           <MyBtn key={id} id={id}>
