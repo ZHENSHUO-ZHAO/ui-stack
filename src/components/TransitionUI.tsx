@@ -1,6 +1,12 @@
 import { Transition } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
 
+// Notes:
+// When the open transition is triggered, the enter, closed data added to the transition object alongside the animation. The state in enter and closed are set as the object's initial state, as the animation is created with these data at the same time when the object is created.
+// The closed data is removed at the beginning of the open animation and the enter data is removed at the end of the open animation.
+// When the close transition is triggered, the leave data is added while the closed data is added in the next frame.
+// The leave data is removed when the animation is done.
+
 export default function TransitionUI() {
   const [open, setOpen] = useState(false);
   // const divRef = useRef<HTMLDivElement>(null);
