@@ -7,6 +7,7 @@ import PopoverTabs from "./components/PopoverTabs";
 import TabsUI from "./components/tabsUI";
 import TransitionUI from "./components/TransitionUI";
 import MyButton from "./components/MyButton";
+import MyCheckbox from "./components/MyCheckbox";
 
 function App() {
   let dialogApi: { open: () => void };
@@ -46,6 +47,7 @@ function App() {
         ))}
       </MyDiv>
       <MyButton>{(isOpen) => <p>{isOpen ? "Open" : "Close"}</p>}</MyButton>
+      <MyCheckbox />
     </>
   );
 }
