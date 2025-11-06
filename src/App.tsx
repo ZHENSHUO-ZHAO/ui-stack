@@ -6,6 +6,7 @@ import PopoverSideMenu from "./components/PopoverSideMenu";
 import PopoverTabs from "./components/PopoverTabs";
 import TabsUI from "./components/tabsUI";
 import TransitionUI from "./components/TransitionUI";
+import MyButton from "./components/MyButton";
 
 function App() {
   let dialogApi: { open: () => void };
@@ -44,6 +45,7 @@ function App() {
           </MyBtn>
         ))}
       </MyDiv>
+      <MyButton>{(isOpen) => <p>{isOpen ? "Open" : "Close"}</p>}</MyButton>
     </>
   );
 }
