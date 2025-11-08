@@ -8,12 +8,14 @@ import TabsUI from "./components/tabsUI";
 import TransitionUI from "./components/TransitionUI";
 import MyButton from "./components/MyButton";
 import MyCheckbox from "./components/MyCheckbox";
+import MyComboBox from "./components/MyComboBox";
 
 function App() {
   let dialogApi: { open: () => void };
 
   return (
     <>
+      <MyComboBox />
       <PopoverSideMenu />
       <PopoverTabs />
       <DisclosureUI />
