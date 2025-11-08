@@ -9,6 +9,7 @@ import TransitionUI from "./components/TransitionUI";
 import MyButton from "./components/MyButton";
 import MyCheckbox from "./components/MyCheckbox";
 import MyComboBox from "./components/MyComboBox";
+import MyFieldset from "./components/MyFieldset";
 
 function App() {
   let dialogApi: { open: () => void };
@@ -50,6 +51,7 @@ function App() {
       </MyDiv>
       <MyButton>{(isOpen) => <p>{isOpen ? "Open" : "Close"}</p>}</MyButton>
       <MyCheckbox />
+      <MyFieldset />
     </>
   );
 }
