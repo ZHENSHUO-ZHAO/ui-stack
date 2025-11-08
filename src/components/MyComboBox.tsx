@@ -22,7 +22,7 @@ const destinations: stopType[] = [
 ];
 
 export default function MyComboBox() {
-  const [stop, setStop] = useState<string | null>(destinations[0].name);
+  const [stop, setStop] = useState<stopType | null>(destinations[0]);
   const [query, setQuery] = useState("");
 
   const filteredStops =
@@ -50,6 +50,8 @@ export default function MyComboBox() {
           The destinations are bounded within Australia.
         </Description>
         <Combobox
+          immediate
+          virtual={{ options: filteredStops, disabled: (s) => !s?.available }}
           name="destination"
           value={stop}
           onChange={setStop}
@@ -57,6 +59,7 @@ export default function MyComboBox() {
         >
           <div className="relative w-fit">
             <ComboboxInput
+              displayValue={(s: stopType | null) => (s ? s.name : "")}
               onChange={(e) => setQuery(e.target.value)}
               className="bg-slate-600 text-slate-100 rounded-t-sm text-lg px-2"
             />
@@ -67,19 +70,19 @@ export default function MyComboBox() {
           <ComboboxOptions
             anchor="bottom"
             transition
-            className="origin-top empty:invisible bg-sky-700/50 backdrop-blur-sm w-(--input-width) [--anchor-gap:--spacing(1)] rounded-b-sm transition duration-300 ease-in-out data-closed:scale-y-90 data-closed:opacity-0"
+            className="origin-top h-30 empty:invisible bg-sky-700/50 backdrop-blur-sm w-(--input-width) [--anchor-gap:--spacing(1)] rounded-b-sm transition duration-300 ease-in-out data-closed:scale-y-90 data-closed:opacity-0"
           >
-            {filteredStops.map((s) => (
+            {({ option: s }) => (
               <ComboboxOption
                 key={s.id}
-                value={s.name}
-                disabled={!s.available}
+                value={s}
+                // disabled={!s.available}
                 className="group flex gap-2 justify-start items-center my-2 text-lg text-slate-50 data-focus:text-sky-400 data-disabled:text-gray-400 data-disabled:line-through"
               >
                 <CheckIcon className="invisible size-6 fill-slate-50 group-data-selected:visible group-data-focus:fill-sky-400" />
                 {s.name}
               </ComboboxOption>
-            ))}
+            )}
           </ComboboxOptions>
         </Combobox>
       </Field>
