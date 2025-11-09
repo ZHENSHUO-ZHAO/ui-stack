@@ -10,6 +10,7 @@ import MyButton from "./components/MyButton";
 import MyCheckbox from "./components/MyCheckbox";
 import MyComboBox from "./components/MyComboBox";
 import MyFieldset from "./components/MyFieldset";
+import MyListbox from "./components/MyListbox";
 
 function App() {
   let dialogApi: { open: () => void };
@@ -17,6 +18,7 @@ function App() {
   return (
     <>
       <MyComboBox />
+      <MyListbox />
       <PopoverSideMenu />
       <PopoverTabs />
       <DisclosureUI />
