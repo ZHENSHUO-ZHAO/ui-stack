@@ -28,13 +28,13 @@ export default function MyRadioGroup() {
           <Radio
             as="div"
             value={p}
-            className="group bg-slate-700 py-2 px-4 rounded-md flex gap-5 justify-between items-center data-hover:bg-slate-600"
+            className="group bg-slate-700 py-2 px-4 rounded-md flex gap-5 justify-between items-center transition duration-300 ease-in-out data-hover:bg-slate-600"
           >
             <div>
-              <Label className="block text-teal-600 font-semibold text-lg group-data-checked:text-teal-300">
+              <Label className="block text-teal-600 font-semibold text-lg transition duration-300 ease-in-out group-data-checked:text-teal-300">
                 {p.name}
               </Label>
-              <Description className="text-slate-400 group-data-checked:text-slate-100">
+              <Description className="text-slate-400 transition duration-300 ease-in-out group-data-checked:text-slate-100">
                 {p.ram} &middot; {p.cpu} &middot; {p.disk}
               </Description>
             </div>
