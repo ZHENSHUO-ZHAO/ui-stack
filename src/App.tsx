@@ -1,9 +1,9 @@
-import MyUI from "./MyUI";
+import RotateBox from "./animations/RotateBox";
 
 function App() {
   return (
     <>
-      <MyUI />
+      <RotateBox />
     </>
   );
 }
