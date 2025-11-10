@@ -11,12 +11,14 @@ import MyCheckbox from "./components/MyCheckbox";
 import MyComboBox from "./components/MyComboBox";
 import MyFieldset from "./components/MyFieldset";
 import MyListbox from "./components/MyListbox";
+import MyRadioGroup from "./components/MyRadioGroup";
 
 function App() {
   let dialogApi: { open: () => void };
 
   return (
     <>
+      <MyRadioGroup />
       <MyComboBox />
       <MyListbox />
       <PopoverSideMenu />
