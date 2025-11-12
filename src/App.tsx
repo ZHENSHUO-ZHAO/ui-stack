@@ -1,9 +1,9 @@
-import AnimatedTabs from "./animations/AnimatedTabs";
+import AnimatedCardLayout from "./animations/AnimatedCardLayout";
 
 function App() {
   return (
     <>
-      <AnimatedTabs />
+      <AnimatedCardLayout />
     </>
   );
 }
