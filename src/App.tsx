@@ -1,9 +1,9 @@
-import RotateBox from "./animations/RotateBox";
+import AnimatedTabs from "./animations/AnimatedTabs";
 
 function App() {
   return (
     <>
-      <RotateBox />
+      <AnimatedTabs />
     </>
   );
 }
