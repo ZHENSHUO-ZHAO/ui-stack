@@ -1,9 +1,9 @@
-import ScrollTrigger from "./animations/ScrollTrigger";
+import SideScrollGallery from "./animations/SideScrollGallery";
 
 function App() {
   return (
     <>
-      <ScrollTrigger />
+      <SideScrollGallery />
     </>
   );
 }
