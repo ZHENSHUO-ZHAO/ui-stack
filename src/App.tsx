@@ -1,9 +1,9 @@
-import AnimatedCardLayout from "./animations/AnimatedCardLayout";
+import ScrollTrigger from "./animations/ScrollTrigger";
 
 function App() {
   return (
     <>
-      <AnimatedCardLayout />
+      <ScrollTrigger />
     </>
   );
 }
