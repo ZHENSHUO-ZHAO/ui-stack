@@ -4,6 +4,7 @@ import {
   useMotionValue,
   useMotionValueEvent,
   useScroll,
+  useTransform,
   type ValueAnimationTransition,
 } from "motion/react";
 import MotionContainer from "./MotionContainer";
@@ -19,7 +20,7 @@ export default function SideScrollGallery() {
     <MotionContainer>
       <motion.div
         ref={scrollRef}
-        className="relative w-1/3 h-1/4 overflow-x-auto snap-x snap-proximity flex justify-start items-stretch gap-2"
+        className="relative w-1/2 h-1/4 overflow-x-auto snap-x snap-proximity flex justify-start items-stretch gap-2 perspective-[1000px]"
         style={{ maskImage }}
       >
         <>
@@ -47,10 +48,25 @@ function ItemIndicator({
     offset: ["end start", "start end"],
   });
 
+  const rotation = useTransform(
+    scrollXProgress,
+    [0, 0.3, 0.7, 1],
+    [-60, 0, 0, 60]
+  );
+
+  const origin = useTransform(
+    scrollXProgress,
+    [0, 0.3, 0.7, 1],
+    ["right", "right", "left", "left"]
+  );
+
+  const opacity = useTransform(scrollXProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+
   return (
-    <div
+    <motion.div
       ref={targetRef}
       className="flex-none min-w-[300px] max-w-[350px] p-4 text-lg font-semibold bg-teal-700 rounded-2xl snap-center"
+      style={{ rotateY: rotation, transformOrigin: origin, opacity: opacity }}
     >
       <svg className="mr-2 size-[38px] stroke-8 stroke-amber-300 fill-transparent float-left translate-y-2">
         <motion.circle
@@ -67,7 +83,7 @@ function ItemIndicator({
         blanditiis accusantium expedita architecto nesciunt officiis doloremque
         dolor qui vitae fuga totam.
       </p>
-    </div>
+    </motion.div>
   );
 }
 
