@@ -1,9 +1,9 @@
-import SideScrollGallery from "./animations/SideScrollGallery";
+import DraggableItem from "./animations/DraggableItem";
 
 function App() {
   return (
     <>
-      <SideScrollGallery />
+      <DraggableItem />
     </>
   );
 }
