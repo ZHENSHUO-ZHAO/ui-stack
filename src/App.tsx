@@ -1,9 +1,11 @@
-import DraggableItem from "./animations/DraggableItem";
+import AnimatedTabs from "./animations/AnimatedTabs";
+import Test from "./components/Test";
 
 function App() {
   return (
     <>
-      <DraggableItem />
+      {/* <Test /> */}
+      <AnimatedTabs />
     </>
   );
 }
