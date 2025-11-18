@@ -1,12 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import MotionContainer from "./MotionContainer";
 import {
   AnimatePresence,
   clamp,
   motion,
   stagger,
-  useAnimation,
   useMotionValue,
+  type AnimationDefinition,
   type AnimationPlaybackControlsWithThen,
   type ValueAnimationTransition,
   type Variants,
@@ -59,7 +59,8 @@ const origins = [
 ];
 
 export default function AnimatedTabs() {
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(-1);
+  const targetIndex = useRef(0);
   const toggle = useRef(false);
   const hasToggleChanged = useRef(false);
   const tabPosX = useMotionValue(0);
@@ -70,14 +71,18 @@ export default function AnimatedTabs() {
     duration: 0.2,
   };
 
+  const [underlineAnimation, setUnderlineAnimation] = useState("initial");
+  const [buttonAnimation, setButtonAnimation] = useState("initial");
+
   const buttonVariants: Variants = {
-    initial: { y: -10, opacity: 0 },
+    initial: { y: -10, opacity: 0, transition: { duration: 0 } },
     in: { y: 0, opacity: 1, transition: transition },
     open: { y: 0, opacity: 1, transition: transition },
     out: { y: -10, opacity: 0, transition: transition },
     close: { y: -10, opacity: 0, transition: transition },
   };
   const buttonGroupVariant: Variants = {
+    initial: { opacity: 0, transition: { duration: 0 } },
     open: {
       opacity: 1,
       transition: {
@@ -107,6 +112,7 @@ export default function AnimatedTabs() {
   };
 
   const underlineVariants: Variants = {
+    initial: { opacity: 0, transition: { duration: 0 } },
     open: {
       opacity: 1,
       transition: transition,
@@ -117,37 +123,36 @@ export default function AnimatedTabs() {
     }),
   };
 
-  const underlineAminControl = useAnimation();
-  const buttonAminControl = useAnimation();
-
   const onTab = (tabIndex: number) => {
     if (tabIndex === index || !toggle.current) {
-      underlineAminControl.stop();
       if (toggle.current) {
-        buttonAminControl.start("close");
-        underlineAminControl.start("close").then(() => {
-          setIndex(tabIndex);
-        });
+        setUnderlineAnimation("close");
+        setButtonAnimation("close");
       } else {
-        buttonAminControl.start("open");
-        underlineAminControl.start("open").then(() => {
-          setIndex(tabIndex);
-        });
+        setUnderlineAnimation("open");
+        setButtonAnimation("open");
+        setIndex(tabIndex);
       }
       toggle.current = !toggle.current;
       hasToggleChanged.current = true;
     } else {
-      buttonAminControl.stop();
-      buttonAminControl.start("out").then(() => {
-        setIndex(tabIndex);
-      });
+      setButtonAnimation("out");
+      targetIndex.current = tabIndex;
+    }
+  };
+
+  const onButtonAnimationComplete = (definition: AnimationDefinition) => {
+    if (definition === "out") {
+      setIndex(targetIndex.current);
+    } else if (definition === "close") {
+      setIndex(-1);
     }
   };
 
   useLayoutEffect(() => {
     let layoutAnimation: AnimationPlaybackControlsWithThen;
 
-    if (containerRef.current && menuRef.current) {
+    if (containerRef.current && menuRef.current && index >= 0) {
       const container = containerRef.current;
       const menu = menuRef.current;
       const tabWidth = container.clientWidth / origins.length;
@@ -158,31 +163,24 @@ export default function AnimatedTabs() {
         container.clientWidth - menuWidth,
         tabWidth * index - offset
       );
-      if (!hasToggleChanged.current) {
-        layoutAnimation = animate(tabPosX, newPosX, transition);
-        layoutAnimation.then(() => {
-          buttonAminControl.start("in");
-        });
-        buttonAminControl.set("initial");
-        hasToggleChanged.current = false;
-      } else if (hasToggleChanged.current && toggle.current) {
-        tabPosX.set(newPosX);
-        buttonAminControl.start("in");
-        hasToggleChanged.current = false;
+      if (toggle.current) {
+        if (!hasToggleChanged.current) {
+          layoutAnimation = animate(tabPosX, newPosX, transition);
+          layoutAnimation.then(() => {
+            setButtonAnimation("in");
+          });
+        } else {
+          tabPosX.set(newPosX);
+          hasToggleChanged.current = false;
+        }
       }
     }
     return () => {
       if (layoutAnimation) {
         layoutAnimation.stop();
       }
-      buttonAminControl.stop();
-      underlineAminControl.stop();
     };
   }, [index]);
-
-  useEffect(() => {
-    buttonAminControl.set("initial");
-  }, []);
 
   return (
     <MotionContainer>
@@ -200,7 +198,7 @@ export default function AnimatedTabs() {
               className="flex-1"
             >
               <div
-                data-selected={index === i ? true : null}
+                data-selected={index === i ? true : undefined}
                 className={`text-center text-lg font-semibold rounded-tl-lg rounded-tr-lg text-slate-400 hover:bg-slate-700 ${o.textColor} transition duration-500`}
               >
                 {o.text}
@@ -209,8 +207,11 @@ export default function AnimatedTabs() {
                 {index === i && (
                   <motion.div
                     layoutId="underline"
-                    transition={transition}
-                    animate={underlineAminControl}
+                    transition={{
+                      ...transition,
+                      duration: hasToggleChanged.current ? 0 : 0.2,
+                    }}
+                    animate={underlineAnimation}
                     variants={underlineVariants}
                     custom={o.menuOptions.length}
                     className={`h-4 w-full bg-linear-to-b ${o.bgColor} from-0% to-slate-500 to-100%`}
@@ -224,20 +225,26 @@ export default function AnimatedTabs() {
           ref={menuRef}
           layoutId="menu"
           style={{ x: tabPosX }}
-          transition={transition}
+          transition={{
+            ...transition,
+            duration: hasToggleChanged.current ? 0 : 0.2,
+          }}
           variants={buttonGroupVariant}
-          animate={buttonAminControl}
+          animate={buttonAnimation}
+          onAnimationComplete={onButtonAnimationComplete}
           className="min-w-1/5 max-w-full flex flex-col bg-slate-500 rounded-lg rounded-t-none py-2 px-4 self-start"
         >
-          {origins[index].menuOptions.map((o, i) => (
-            <motion.button
-              key={`${index}-${i}`}
-              variants={buttonVariants}
-              className={`text-lg ${origins[index].optionColor}`}
-            >
-              {o}
-            </motion.button>
-          ))}
+          {index >= 0 &&
+            origins[index].menuOptions.map((o, i) => (
+              <motion.button
+                key={`${index}-${i}`}
+                style={{ opacity: 0, y: -10 }}
+                variants={buttonVariants}
+                className={`text-lg ${origins[index].optionColor}`}
+              >
+                {o}
+              </motion.button>
+            ))}
         </motion.div>
       </div>
     </MotionContainer>
