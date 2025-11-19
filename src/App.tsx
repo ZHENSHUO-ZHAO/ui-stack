@@ -1,10 +1,9 @@
-import AnimatedTabs from "./animations/AnimatedTabs";
-import PopoverTabs from "./components/PopoverTabs";
+import DraggableItem from "./animations/DraggableItem";
 
 function App() {
   return (
     <>
-      <AnimatedTabs />
+      <DraggableItem />
     </>
   );
 }
