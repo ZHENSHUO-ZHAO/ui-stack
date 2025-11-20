@@ -115,13 +115,13 @@ function MyComponent(props: MyComponentProps) {
   // console.log(props.transition);
   return (
     <div className="relative" ref={props.ref}>
-      <Outline blur="blur-xs" inset="-inset-1" z="z-10" />
-      <Outline inset="-inset-0.5" z="z-15" />
-      <div className="absolute inset-0 z-17 bg-slate-800 text-xl font-extrabold rounded-full" />
+      <Outline blur="blur-xs" inset="inset-0" z="z-10" />
+      <Outline inset="inset-0.5" z="z-15" />
+      <div className="absolute inset-1 z-17 bg-slate-800 text-xl font-extrabold rounded-full" />
       <motion.div
         animate={textGradientAnimations}
         transition={gradientTransition}
-        className="relative z-20 bg-slate-800 text-xl font-extrabold rounded-full pt-2 pb-3 pr-4 pl-6 bg-clip-text text-white/20"
+        className="relative z-20 m-1 bg-slate-800 text-xl font-extrabold rounded-full pt-2 pb-3 pr-4 pl-6 bg-clip-text text-white/20"
       >
         Nintendo <span className="text-base align-super">&reg;</span>
       </motion.div>
