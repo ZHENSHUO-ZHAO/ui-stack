@@ -27,25 +27,80 @@ export default function CustomMotionComponent() {
   );
 }
 
+const colors = {
+  pink0: "#f6339a00",
+  pink1: "#f6339a",
+  purple0: "#4f39f600",
+  purple1: "#4f39f6",
+};
+
+const createConicGradient = (degree: number, ...colors: string[]) => {
+  return `conic-gradient(from ${degree}deg, ${colors.join(", ")})`;
+};
+
+const createLinearGradient = (
+  degree: number,
+  startColor: string,
+  endColor: string
+) => {
+  return `linear-gradient(${degree}deg, ${startColor} 0%, ${endColor} 100%)`;
+};
+
 const outlineGradientAnimations: TargetAndTransition = {
   backgroundImage: [
-    "conic-gradient(from 0deg, #f6339a00, #4f39f600, #4f39f600, #f6339a00)",
-    "conic-gradient(from 360deg, #f6339a00, #4f39f6, #4f39f6, #f6339a00)",
-    "conic-gradient(from 720deg, #f6339a, #4f39f6, #4f39f6, #f6339a)",
-    "conic-gradient(from 1080deg, #f6339a, #4f39f6, #4f39f6, #f6339a)",
-    "conic-gradient(from 1440deg, #f6339a, #4f39f600, #4f39f600, #f6339a)",
-    "conic-gradient(from 1800deg, #f6339a00, #4f39f600, #4f39f600, #f6339a00)",
+    createConicGradient(
+      0,
+      colors.pink0,
+      colors.purple0,
+      colors.purple0,
+      colors.pink0
+    ),
+    createConicGradient(
+      360,
+      colors.pink0,
+      colors.purple1,
+      colors.purple1,
+      colors.pink0
+    ),
+    createConicGradient(
+      720,
+      colors.pink1,
+      colors.purple1,
+      colors.purple1,
+      colors.pink1
+    ),
+    createConicGradient(
+      1080,
+      colors.pink1,
+      colors.purple1,
+      colors.purple1,
+      colors.pink1
+    ),
+    createConicGradient(
+      1440,
+      colors.pink1,
+      colors.purple0,
+      colors.purple0,
+      colors.pink1
+    ),
+    createConicGradient(
+      1800,
+      colors.pink0,
+      colors.purple0,
+      colors.purple0,
+      colors.pink0
+    ),
   ],
 };
 
 const textGradientAnimations: TargetAndTransition = {
   backgroundImage: [
-    "linear-gradient(0deg, #f6339a00 0%, #4f39f600 100%)",
-    "linear-gradient(360deg, #f6339a00 0%, #4f39f6 100%)",
-    "linear-gradient(720deg, #f6339a 0%, #4f39f6 100%)",
-    "linear-gradient(1080deg, #f6339a 0%, #4f39f6 100%)",
-    "linear-gradient(1440deg, #f6339a 0%, #4f39f600 100%)",
-    "linear-gradient(1800deg, #f6339a00 0%, #4f39f600 100%)",
+    createLinearGradient(0, colors.pink0, colors.purple0),
+    createLinearGradient(360, colors.pink0, colors.purple1),
+    createLinearGradient(720, colors.pink1, colors.purple1),
+    createLinearGradient(1080, colors.pink1, colors.purple1),
+    createLinearGradient(1440, colors.pink0, colors.purple1),
+    createLinearGradient(1800, colors.pink0, colors.purple0),
   ],
 };
 
