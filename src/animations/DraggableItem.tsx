@@ -6,7 +6,7 @@ export default function DraggableItem() {
   const dragContainer = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
 
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
     console.log("start");
     dragControls.start(event, { snapToCursor: true });
   };
@@ -34,12 +34,12 @@ export default function DraggableItem() {
               bounceDamping: 20,
             }}
             dragConstraints={dragContainer}
-            dragListener={false}
-            dragControls={dragControls}
-            onPointerDown={onPointerDown}
-            // onDrag={(event, info) =>
-            //   console.log(`${JSON.stringify(event)}, ${JSON.stringify(info)}`)
-            // }
+            // dragListener={false}
+            // dragControls={dragControls}
+            // onPointerDown={onPointerDown}
+            onDrag={(event, info) =>
+              console.log(`${JSON.stringify(event)}, ${JSON.stringify(info)}`)
+            }
           >
             <button
               onPointerDownCapture={(e) => e.stopPropagation()}

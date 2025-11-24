@@ -1,10 +1,9 @@
-import CustomMotionComponent from "./animations/CustomMotionComponent";
-import DraggableItem from "./animations/DraggableItem";
+import LayoutAnimation from "./animations/LayoutAnimation";
 
 function App() {
   return (
     <>
-      <CustomMotionComponent />
+      <LayoutAnimation />
     </>
   );
 }
