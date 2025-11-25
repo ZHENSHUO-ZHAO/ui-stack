@@ -13,8 +13,8 @@ export default function ScrollTrigger() {
   const loaderWidth = useMotionTemplate`calc(${scrollYProgress} * 100%)`;
 
   const cardVariants: Variants = {
-    offScreen: { opacity: 0 },
-    onScreen: { opacity: 1, transition: { duration: 2 } },
+    offScreen: { opacity: 0, scale: 0.7 },
+    onScreen: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
 
   return (
@@ -28,7 +28,7 @@ export default function ScrollTrigger() {
         <div className="flex flex-col items-center gap-8">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <motion.div
-              initial="offscreen"
+              initial="offScreen"
               whileInView="onScreen"
               viewport={{ amount: "some", once: true }}
               variants={cardVariants}
