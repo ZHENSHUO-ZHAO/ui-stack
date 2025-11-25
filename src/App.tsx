@@ -1,9 +1,9 @@
-import LayoutAnimation from "./animations/LayoutAnimation";
+import ReorderList from "./animations/ReorderList";
 
 function App() {
   return (
     <>
-      <LayoutAnimation />
+      <ReorderList />
     </>
   );
 }
