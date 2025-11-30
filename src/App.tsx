@@ -1,9 +1,9 @@
-import ReorderList from "./animations/ReorderList";
+import Carousel from "./animations/Carousel";
 
 function App() {
   return (
     <>
-      <ReorderList />
+      <Carousel />
     </>
   );
 }
