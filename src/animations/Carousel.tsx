@@ -94,6 +94,7 @@ export default function Carousel<T>({
   const inertiaRef = useRef<() => void | null>(null);
   // True physics-driven source of truth
   const dragX = useMotionValue(layoutData.baseX);
+  const [viewContentIndex, setViewContentIdex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const cardsHolderRef = useRef<HTMLUListElement>(null);
   const cardsRef = useRef<cardDataType[]>(
@@ -211,6 +212,37 @@ export default function Carousel<T>({
     return springControls.finished;
   };
 
+  // Scroll to the card corresponding to the clicked dot index.
+  const onScroll = (index: number) => {
+    const getLocalDistance = (offset: number): number => {
+      return Math.abs(dragX.get() + offset);
+    };
+
+    const cards = cardsRef.current;
+    const midCardData = cards.reduce((pre, cur) => {
+      return getLocalDistance(pre.offset) > getLocalDistance(cur.offset)
+        ? cur
+        : pre;
+    });
+    const indexOffset = index - midCardData.index;
+    const scrollAmount = indexOffset * layoutData.snapSize;
+
+    onDragStart();
+    const springControls = animate(
+      dragX,
+      Math.round((dragX.get() - scrollAmount) / layoutData.snapSize) *
+        layoutData.snapSize,
+      {
+        type: "spring",
+        stiffness: 700,
+        damping: 40,
+        mass: 0.5,
+      }
+    );
+    inertiaRef.current = springControls.stop;
+    springControls.finished.then(onDragEnd);
+  };
+
   useMotionValueEvent(dragX, "change", (latestValue: number) => {
     const data = dragDataRef.current;
     const cardsOrder = data.order;
@@ -237,6 +269,7 @@ export default function Carousel<T>({
             const newIndex =
               (cards[cardsOrder[cardsOrder.length - 1]].index + 1) %
               contentList.length;
+            setViewContentIdex((prev) => (prev + 1) % contentList.length);
 
             // Teleport the leftmost card to the rightmost.
             const shiftOrder = cardsOrder.shift() ?? 0;
@@ -260,6 +293,9 @@ export default function Carousel<T>({
             const newIndex =
               (cards[cardsOrder[0]].index - 1 + contentList.length) %
               contentList.length;
+            setViewContentIdex(
+              (prev) => (prev - 1 + contentList.length) % contentList.length
+            );
 
             // Teleport the rightmost card to the leftmost.
             const shiftOrder = cardsOrder.pop() ?? 0;
@@ -284,38 +320,61 @@ export default function Carousel<T>({
 
   return (
     <MotionContainer>
-      <motion.div
-        ref={containerRef}
-        dragConstraints={{ left: 0, right: 0 }}
-        drag="x"
-        className="relative flex justify-center"
-        dragMomentum={false}
-        dragElastic={0}
-        onDragStart={onDragStart}
-        onDrag={onDrag}
-        onDragEnd={onDragEnd}
-        style={{
-          width: `${layoutData.cardWidth * 2}px`,
-          height: `${layoutData.cardHeight}px`,
-          maskImage: `linear-gradient(90deg, #0000, #000 10%, #000 90%, #0000)`,
-        }}
+      <div
+        className="overflow-clip flex flex-col justify-center items-center gap-5"
+        style={{ width: `${layoutData.cardWidth * 2}px` }}
       >
-        <LayoutContext value={layoutData as layoutDataType<unknown>}>
-          <motion.ul
-            ref={cardsHolderRef}
-            className="relative will-change-transform"
-            style={{
-              width: `${layoutData.cardWidth}px`,
-              height: `${layoutData.cardHeight}px`,
-              x: dragX,
-            }}
-          >
-            {Array.from({ length: cardCount }).map((_, i) => (
-              <Card key={i} dragX={dragX} data={cardsRef.current[i]} />
-            ))}
-          </motion.ul>
-        </LayoutContext>
-      </motion.div>
+        <motion.div
+          ref={containerRef}
+          dragConstraints={{ left: 0, right: 0 }}
+          drag="x"
+          className="relative flex-none flex justify-center"
+          dragMomentum={false}
+          dragElastic={0}
+          onDragStart={onDragStart}
+          onDrag={onDrag}
+          onDragEnd={onDragEnd}
+          style={{
+            width: `${layoutData.cardWidth * 2}px`,
+            height: `${layoutData.cardHeight}px`,
+            maskImage: `linear-gradient(90deg, #0000, #000 10%, #000 90%, #0000)`,
+          }}
+        >
+          <LayoutContext value={layoutData as layoutDataType<unknown>}>
+            <motion.ul
+              ref={cardsHolderRef}
+              className="relative will-change-transform"
+              style={{
+                width: `${layoutData.cardWidth}px`,
+                height: `${layoutData.cardHeight}px`,
+                x: dragX,
+              }}
+            >
+              {Array.from({ length: cardCount }).map((_, i) => (
+                <Card key={i} dragX={dragX} data={cardsRef.current[i]} />
+              ))}
+            </motion.ul>
+          </LayoutContext>
+        </motion.div>
+        <ul className="flex justify-center items-center gap-2 pb-1">
+          {contentList.map((_, i) => (
+            <motion.li
+              key={i}
+              onClick={() => onScroll(i)}
+              className="size-4 bg-white rounded-full"
+              initial={{ width: 16, opacity: 0.5 }}
+              animate={{
+                width: viewContentIndex === i ? 32 : 16,
+                opacity: viewContentIndex === i ? 1 : 0.5,
+              }}
+              whileHover={{
+                boxShadow: "0 0 3px 2px rgba(255,255,255,0.8)",
+                scale: 1.1,
+              }}
+            />
+          ))}
+        </ul>
+      </div>
     </MotionContainer>
   );
 }
@@ -337,11 +396,6 @@ function Card({
     useRef<React.Dispatch<React.SetStateAction<number>>>(null);
 
   const ratio = useTransform(() => {
-    if (indexRef.current !== data.index) {
-      indexRef.current = data.index;
-      setIndexRef.current?.(data.index);
-    }
-
     // The position offset from the card centered in the view.
     const offset = dragX.get() + data.offset;
     // Return percentage of how far the card is away from the view center, clamping between -1 and 1. The denominator can be adjusted to define the farthest point considered as 0.
@@ -354,6 +408,13 @@ function Card({
   // Translate the inside div a bit closer to the center card.
   const translateX = useTransform(ratio, [-1, 0, 1], ["40%", "0%", "-40%"]);
   const zIndex = useTransform(ratio, [-1, 0, 1], [0, 1, 0]);
+
+  useEffect(() => {
+    if (indexRef.current !== data.index) {
+      indexRef.current = data.index;
+      setIndexRef.current?.(data.index);
+    }
+  }, [data.index]);
 
   return (
     <motion.li

@@ -5,7 +5,7 @@ export type cardContent = {
 
 export function getContent(): cardContent[] {
   return Array.from({ length: 10 }).map((_, i) => ({
-    title: `Item - ${i}`,
-    desc: `This is the ${i} item in the list.`,
+    title: `Item - ${i + 1}`,
+    desc: `This is the ${i + 1} item in the list.`,
   }));
 }
