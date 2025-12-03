@@ -2,6 +2,7 @@ import {
   animate,
   motion,
   useMotionValue,
+  useMotionValueEvent,
   useTransform,
   type MotionValue,
   type PanInfo,
@@ -20,18 +21,22 @@ import {
 
 type layoutDataType<T> = {
   cardWidth: number;
-  cardGap: number;
-  edgeR: number;
-  edgeL: number;
+  cardHeight: number;
   baseX: number;
   snapSize: number;
   contentList: T[];
   CardComponent: React.ComponentType<cardItemType<T>>;
 };
 
-type cardHolderType = {
+type cardHolderPropType = {
   initialIdex: number;
   ref: RefObject<Dispatch<SetStateAction<number>> | null>;
+};
+
+type cardDataType = {
+  card: HTMLLIElement | null;
+  offset: number;
+  index: number;
 };
 
 export type cardItemType<T> = {
@@ -41,22 +46,23 @@ export type cardItemType<T> = {
 const cardCount = 5;
 const LayoutContext = createContext<layoutDataType<unknown> | null>(null);
 
+// Changed the core logic of the Carousel. The drag is applied on the holder that contains all the cards while cards are only teleported when needed. This avoids adding delta X to each card's translate X, which accumulates calculation discrepancies due to the notorious JS floating-point issue. Now the position of each is not set when teleported while the position calculations don't depend on delta accumulations.
 export default function Carousel<T>({
   cardWidth,
+  cardHeight,
   cardGap = 0,
   CardComponent,
   contentList,
 }: {
   cardWidth: number;
+  cardHeight?: number;
   cardGap?: number;
   CardComponent: React.ComponentType<cardItemType<T>>;
   contentList: T[];
 }) {
   const layoutData: layoutDataType<T> = {
     cardWidth,
-    cardGap,
-    edgeR: 3 * (cardWidth + cardGap),
-    edgeL: -2 * (cardWidth + cardGap),
+    cardHeight: cardHeight || cardWidth,
     baseX: -2 * (cardWidth + cardGap),
     snapSize: cardWidth + cardGap,
     contentList,
@@ -68,15 +74,81 @@ export default function Carousel<T>({
     x: number;
     isDragging: boolean;
     scrollTimeout: number | null;
+    boundaryL: number;
+    boundaryR: number;
+    viewL: number;
+    viewR: number;
+    midIndex: number;
+    order: number[];
   }>({
     x: layoutData.baseX,
     isDragging: false,
     scrollTimeout: null,
+    boundaryL: 0,
+    boundaryR: cardCount * layoutData.snapSize,
+    viewL: 0,
+    viewR: cardCount * layoutData.snapSize,
+    midIndex: Math.floor((cardCount - 1) / 2),
+    order: Array.from({ length: cardCount }).map((_, i) => i), // order of the cardsRef array items
   });
   const inertiaRef = useRef<() => void | null>(null);
   // True physics-driven source of truth
   const dragX = useMotionValue(layoutData.baseX);
   const containerRef = useRef<HTMLDivElement>(null);
+  const cardsHolderRef = useRef<HTMLUListElement>(null);
+  const cardsRef = useRef<cardDataType[]>(
+    (Array.from({ length: cardCount }) as HTMLDivElement[]).map((_, i) => {
+      let index = i - dragDataRef.current.midIndex;
+      if (index < 0) {
+        index = index + contentList.length;
+      }
+
+      return {
+        card: null,
+        offset: i * layoutData.snapSize,
+        index,
+      };
+    })
+  );
+
+  useEffect(() => {
+    if (cardsHolderRef.current) {
+      (Array.from(cardsHolderRef.current.children) as HTMLLIElement[]).forEach(
+        (v, i) => {
+          cardsRef.current[i].card = v;
+          v.style.translate = `${i * layoutData.snapSize}px 0px`;
+        }
+      );
+    }
+
+    if (containerRef.current) {
+      const el = containerRef.current;
+      const onWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        if (e.deltaX != 0) {
+          const dragData = dragDataRef.current;
+          if (!dragData.isDragging) {
+            onDragStart();
+          }
+          if (dragData.isDragging) {
+            const newPos = dragData.x - e.deltaX;
+            dragX.set(newPos);
+            dragData.x = newPos;
+            if (dragData.scrollTimeout) {
+              clearTimeout(dragData.scrollTimeout);
+            }
+            dragData.scrollTimeout = setTimeout(() => {
+              onDragEnd();
+              dragData.scrollTimeout = null;
+            }, 200);
+          }
+        }
+      };
+      // Add event listener to mouse scroll wheel.
+      el.addEventListener("wheel", onWheel, { passive: false });
+      return () => el.removeEventListener("wheel", onWheel);
+    }
+  }, []);
 
   const onDragStart = () => {
     if (dragDataRef.current.scrollTimeout) {
@@ -115,23 +187,16 @@ export default function Carousel<T>({
       });
       inertiaRef.current = inertiaControls.stop;
       inertiaControls.finished.then(startSnap).then(() => {
-        console.log(`snap done dragX ${dragX.get()}`);
         dragDataRef.current.x = dragX.get();
       });
     } else {
       startSnap().then(() => {
-        console.log(`snap done dragX ${dragX.get()}`);
         dragDataRef.current.x = dragX.get();
       });
     }
   };
 
   const startSnap = () => {
-    console.log(
-      "snap",
-      Math.round(dragX.get() / layoutData.snapSize) * layoutData.snapSize,
-      dragX.get()
-    );
     const springControls = animate(
       dragX,
       Math.round(dragX.get() / layoutData.snapSize) * layoutData.snapSize,
@@ -146,35 +211,76 @@ export default function Carousel<T>({
     return springControls.finished;
   };
 
-  useEffect(() => {
-    if (containerRef.current) {
-      const el = containerRef.current;
-      const onWheel = (e: WheelEvent) => {
-        e.preventDefault();
-        if (e.deltaX != 0) {
-          const dragData = dragDataRef.current;
-          if (!dragData.isDragging) {
-            onDragStart();
-          }
-          if (dragData.isDragging) {
-            const newPos = dragData.x - e.deltaX;
-            dragX.set(newPos);
-            dragData.x = newPos;
-            if (dragData.scrollTimeout) {
-              clearTimeout(dragData.scrollTimeout);
+  useMotionValueEvent(dragX, "change", (latestValue: number) => {
+    const data = dragDataRef.current;
+    const cardsOrder = data.order;
+    const cards = cardsRef.current;
+    const offset = latestValue - (dragX.getPrevious() ?? layoutData.baseX);
+
+    // Update the boundaries with the offset of the current drag. Use them to compare with the view to decide if teleports needed.
+    data.boundaryL += offset;
+    data.boundaryR += offset;
+
+    // When dragging left, check if the right boundary is far enough to cover the rightmost of the view, and vice verser.
+    if (
+      (offset < 0 && data.boundaryR < data.viewR) ||
+      (offset > 0 && data.boundaryL > data.viewL)
+    ) {
+      // Calculate the least number of card to be teleport to cover the view's corresponding empty space left by the drag.
+      const offsetCount = Math.ceil(Math.abs(offset) / layoutData.snapSize);
+      if (offsetCount > 0) {
+        Array.from({ length: offsetCount }).forEach(() => {
+          if (offset < 0) {
+            // Dragging left, moving cards from the leftmost to the rightmost.
+
+            // Calculate the new content index for the shifted card by adding 1 to the leftmost card's content index wrapping it within the content list item count.
+            const newIndex =
+              (cards[cardsOrder[cardsOrder.length - 1]].index + 1) %
+              contentList.length;
+
+            // Teleport the leftmost card to the rightmost.
+            const shiftOrder = cardsOrder.shift() ?? 0;
+            const shiftCard = cards[shiftOrder];
+            if (shiftCard && shiftCard.card) {
+              cardsOrder.push(shiftOrder);
+              data.midIndex++;
+              // Calculate the new translate X for the card being teleported.
+              const offset = (data.midIndex + 2) * layoutData.snapSize;
+              shiftCard.card.style.translate = `${offset}px 0px`;
+              shiftCard.offset = offset;
+              shiftCard.index = newIndex;
+              // Update the boundaries to reflect the teleport.
+              data.boundaryL += layoutData.snapSize;
+              data.boundaryR += layoutData.snapSize;
             }
-            dragData.scrollTimeout = setTimeout(() => {
-              onDragEnd();
-              dragData.scrollTimeout = null;
-            }, 200);
+          } else {
+            // Dragging right, moving cards from the rightmost to the leftmost.
+
+            // Calculate the new content index for the shifted card by deducting 1 to the rightmost card's content index wrapping it within the content list item count.
+            const newIndex =
+              (cards[cardsOrder[0]].index - 1 + contentList.length) %
+              contentList.length;
+
+            // Teleport the rightmost card to the leftmost.
+            const shiftOrder = cardsOrder.pop() ?? 0;
+            const shiftCard = cards[shiftOrder];
+            if (shiftCard && shiftCard.card) {
+              cardsOrder.unshift(shiftOrder);
+              data.midIndex--;
+              // Calculate the new translate X for the card being teleported.
+              const offset = (data.midIndex - 2) * layoutData.snapSize;
+              shiftCard.card.style.translate = `${offset}px 0px`;
+              shiftCard.offset = offset;
+              shiftCard.index = newIndex;
+              // Update the boundaries to reflect the teleport.
+              data.boundaryL -= layoutData.snapSize;
+              data.boundaryR -= layoutData.snapSize;
+            }
           }
-        }
-      };
-      // Add event listener to mouse scroll wheel.
-      el.addEventListener("wheel", onWheel, { passive: false });
-      return () => el.removeEventListener("wheel", onWheel);
+        });
+      }
     }
-  }, []);
+  });
 
   return (
     <MotionContainer>
@@ -182,118 +288,106 @@ export default function Carousel<T>({
         ref={containerRef}
         dragConstraints={{ left: 0, right: 0 }}
         drag="x"
-        className="relative overflow-hidden flex justify-center"
+        className="relative flex justify-center"
         dragMomentum={false}
         dragElastic={0}
         onDragStart={onDragStart}
         onDrag={onDrag}
         onDragEnd={onDragEnd}
         style={{
-          width: `${cardWidth * 2}px`,
-          height: `${cardWidth}px`,
+          width: `${layoutData.cardWidth * 2}px`,
+          height: `${layoutData.cardHeight}px`,
           maskImage: `linear-gradient(90deg, #0000, #000 10%, #000 90%, #0000)`,
         }}
       >
         <LayoutContext value={layoutData as layoutDataType<unknown>}>
-          <div
-            className="relative perspective-[900px]"
-            style={{ width: `${cardWidth}px`, height: `${cardWidth}px` }}
+          <motion.ul
+            ref={cardsHolderRef}
+            className="relative will-change-transform"
+            style={{
+              width: `${layoutData.cardWidth}px`,
+              height: `${layoutData.cardHeight}px`,
+              x: dragX,
+            }}
           >
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Card key={i} index={i} dragX={dragX} />
+            {Array.from({ length: cardCount }).map((_, i) => (
+              <Card key={i} dragX={dragX} data={cardsRef.current[i]} />
             ))}
-          </div>
+          </motion.ul>
         </LayoutContext>
       </motion.div>
     </MotionContainer>
   );
 }
 
-function Card({ index, dragX }: { index: number; dragX: MotionValue<number> }) {
+function Card({
+  dragX,
+  data,
+}: {
+  dragX: MotionValue<number>;
+  data: cardDataType;
+}) {
   const layoutContext = useContext(LayoutContext);
   if (!layoutContext) {
-    throw new Error("Card must be used inside <Carousel>");
+    throw new Error("LayoutContext cannot be undefined.");
   }
-  const lastXRef = useRef<number>(
-    index * (layoutContext.cardWidth + layoutContext.cardGap) + dragX.get()
-  );
 
-  const indexRef = useRef<number>(index);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const indexRef = useRef<number>(data.index);
   const setIndexRef =
     useRef<React.Dispatch<React.SetStateAction<number>>>(null);
 
-  const posX = useTransform(() => {
-    const delta = dragX.get() - (dragX.getPrevious() ?? dragX.get());
-    let newPos = lastXRef.current + delta;
-    console.log(
-      `index ${index}, dragX ${dragX.get()}, delta ${delta}, newPos ${newPos}`
-    );
-    let newIndex = indexRef.current;
-    if (newPos < layoutContext.edgeL && delta < 0) {
-      // When dragging left, teleports leftmost items to the right.
-      newPos = layoutContext.edgeR - (layoutContext.edgeL - newPos);
-      newIndex =
-        (indexRef.current + cardCount) % layoutContext.contentList.length;
-    } else if (newPos > layoutContext.edgeR && delta > 0) {
-      // When dragging right, teleports leftmost items to the left.
-      newPos = layoutContext.edgeL + (newPos - layoutContext.edgeR);
-      newIndex =
-        (indexRef.current - cardCount + layoutContext.contentList.length) %
-        layoutContext.contentList.length;
+  const ratio = useTransform(() => {
+    if (indexRef.current !== data.index) {
+      indexRef.current = data.index;
+      setIndexRef.current?.(data.index);
     }
-    if (indexRef.current !== newIndex) {
-      setIndexRef.current?.(newIndex);
-      indexRef.current = newIndex;
-    }
-    lastXRef.current = newPos;
-    if (index === 2) {
-      // console.log(`transform pos ${newPos}, dragX ${dragX.get()}`);
-    }
-    return newPos;
+
+    // The position offset from the card centered in the view.
+    const offset = dragX.get() + data.offset;
+    // Return percentage of how far the card is away from the view center, clamping between -1 and 1. The denominator can be adjusted to define the farthest point considered as 0.
+    return Math.max(Math.min(offset / layoutContext.snapSize, 1), -1);
   });
 
-  const opacity = useTransform(
-    posX,
-    [-layoutContext.snapSize, 0, layoutContext.snapSize],
-    [0.2, 1, 0.2]
-  );
-  const rotateY = useTransform(
-    posX,
-    [-layoutContext.snapSize, 0, layoutContext.snapSize],
-    [60, 0, -60]
-  );
-  const scale = useTransform(
-    posX,
-    [-layoutContext.snapSize, 0, layoutContext.snapSize],
-    [0.8, 1, 0.8]
-  );
+  const opacity = useTransform(ratio, [-1, 0, 1], [0.2, 1, 0.2]);
+  const rotateY = useTransform(ratio, [-1, 0, 1], [20, 0, -20]);
+  const scale = useTransform(ratio, [-1, 0, 1], [0.7, 1, 0.7]);
+  // Translate the inside div a bit closer to the center card.
+  const translateX = useTransform(ratio, [-1, 0, 1], ["40%", "0%", "-40%"]);
+  const zIndex = useTransform(ratio, [-1, 0, 1], [0, 1, 0]);
 
   return (
-    <motion.div
-      ref={cardRef}
-      className="absolute top-0 left-0 bg-amber-500
-                 text-2xl font-black flex justify-center items-center
-                 rounded-2xl will-change-transform"
+    <motion.li
+      className="absolute top-0 left-0 "
       style={{
         width: `${layoutContext.cardWidth}px`,
-        height: `${layoutContext.cardWidth}px`,
-        x: posX,
-        opacity,
-        rotateY,
-        scaleX: scale,
-        scaleY: scale,
+        height: `${layoutContext.cardHeight}px`,
+        zIndex,
       }}
     >
-      <CardContentHolder initialIdex={index} ref={setIndexRef} />
-    </motion.div>
+      <motion.div
+        className="relative size-full bg-amber-500
+                 flex justify-center items-center
+                 rounded-2xl will-change-auto"
+        style={{
+          opacity,
+          rotateY,
+          scale,
+          translateX,
+        }}
+        transformTemplate={(_, generatedTransform) =>
+          `perspective(400px) ${generatedTransform}`
+        }
+      >
+        <CardContentHolder initialIdex={indexRef.current} ref={setIndexRef} />
+      </motion.div>
+    </motion.li>
   );
 }
 
-function CardContentHolder({ initialIdex, ref }: cardHolderType) {
+function CardContentHolder({ initialIdex, ref }: cardHolderPropType) {
   const layoutContext = useContext(LayoutContext);
   if (!layoutContext) {
-    throw new Error("Card must be used inside <Carousel>");
+    throw new Error("LayoutContext cannot be undefined.");
   }
 
   const [index, setIndex] = useState<number>(initialIdex);

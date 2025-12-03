@@ -7,6 +7,7 @@ function App() {
     <>
       <Carousel
         cardWidth={400}
+        cardHeight={300}
         CardComponent={CardItem}
         contentList={getContent()}
       />
