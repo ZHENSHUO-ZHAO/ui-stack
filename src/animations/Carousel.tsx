@@ -1,6 +1,7 @@
 import {
   animate,
   motion,
+  scale,
   useMotionValue,
   useMotionValueEvent,
   useTransform,
@@ -18,6 +19,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 
 type layoutDataType<T> = {
   cardWidth: number;
@@ -212,8 +214,8 @@ export default function Carousel<T>({
     return springControls.finished;
   };
 
-  // Scroll to the card corresponding to the clicked dot index.
-  const onScroll = (index: number) => {
+  // Get the content index of the card in the center of the view.
+  const getMidCardIndex = (): number => {
     const getLocalDistance = (offset: number): number => {
       return Math.abs(dragX.get() + offset);
     };
@@ -224,8 +226,17 @@ export default function Carousel<T>({
         ? cur
         : pre;
     });
-    const indexOffset = index - midCardData.index;
+    return midCardData.index;
+  };
+
+  // Scroll to the card corresponding to the clicked dot index.
+  const onScroll = (index: number) => {
+    let indexOffset = index - getMidCardIndex();
+    if (Math.abs(indexOffset) === contentList.length - 1) {
+      indexOffset = indexOffset < 0 ? 1 : -1;
+    }
     const scrollAmount = indexOffset * layoutData.snapSize;
+    console.log(indexOffset);
 
     onDragStart();
     const springControls = animate(
@@ -241,6 +252,15 @@ export default function Carousel<T>({
     );
     inertiaRef.current = springControls.stop;
     springControls.finished.then(onDragEnd);
+  };
+
+  // Flip to the next or previous card.
+  const onNext = (toRight: boolean): void => {
+    const currentIndex = getMidCardIndex();
+    const targetIndex = toRight
+      ? (currentIndex + 1) % contentList.length
+      : (currentIndex - 1 + contentList.length) % contentList.length;
+    onScroll(targetIndex);
   };
 
   useMotionValueEvent(dragX, "change", (latestValue: number) => {
@@ -356,7 +376,17 @@ export default function Carousel<T>({
             </motion.ul>
           </LayoutContext>
         </motion.div>
-        <ul className="flex justify-center items-center gap-2 pb-1">
+        <ul className="flex justify-center items-center gap-2 pb-2">
+          <motion.button
+            className="size-10 rounded-full bg-white/50 flex justify-center items-center mr-4"
+            whileHover={{
+              boxShadow: "0 0 3px 2px rgba(255,255,255,0.5)",
+            }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onNext(false)}
+          >
+            <ChevronLeftIcon className="size-8" />
+          </motion.button>
           {contentList.map((_, i) => (
             <motion.li
               key={i}
@@ -371,8 +401,19 @@ export default function Carousel<T>({
                 boxShadow: "0 0 3px 2px rgba(255,255,255,0.8)",
                 scale: 1.1,
               }}
+              whileTap={{ scale: 0.9 }}
             />
           ))}
+          <motion.button
+            className="size-10 rounded-full bg-white/50 flex justify-center items-center ml-4"
+            whileHover={{
+              boxShadow: "0 0 3px 2px rgba(255,255,255,0.5)",
+            }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onNext(true)}
+          >
+            <ChevronRightIcon className="size-8" />
+          </motion.button>
         </ul>
       </div>
     </MotionContainer>
