@@ -3,35 +3,22 @@ import {
   motion,
   useMotionValue,
   useMotionValueEvent,
-  useTransform,
-  type MotionValue,
   type PanInfo,
 } from "motion/react";
-import MotionContainer from "./MotionContainer";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
-
-type layoutDataType<T> = {
-  cardWidth: number;
-  cardHeight: number;
-  baseX: number;
-  snapSize: number;
-  contentList: T[];
-  CardComponent: React.ComponentType<cardItemType<T>>;
-};
-
-type cardDataType = {
-  card: HTMLLIElement | null;
-  offset: number;
-  index: number;
-};
-
-export type cardItemType<T> = {
-  content: T;
-};
+import MotionContainer from "../MotionContainer";
+import { useEffect, useRef, useState } from "react";
+import type {
+  cardDataType,
+  cardItemType,
+  layoutDataType,
+  onNextCbType,
+} from "./carouselTypes";
+import { LayoutContext } from "./layoutContext";
+import Card from "./Card";
+import Dot from "./Dot";
+import NextButton from "./NextButton";
 
 const cardCount = 5;
-const LayoutContext = createContext<layoutDataType<unknown> | null>(null);
 
 // Changed the core logic of the Carousel. The drag is applied on the holder that contains all the cards while cards are only teleported when needed. This avoids adding delta X to each card's translate X, which accumulates calculation discrepancies due to the notorious JS floating-point issue. Now the position of each is not set when teleported while the position calculations don't depend on delta accumulations.
 export default function Carousel<T>({
@@ -165,13 +152,13 @@ export default function Carousel<T>({
     const velocity = dragX.getVelocity();
 
     if (velocity !== 0) {
-      const inertiaControls = animate(dragX, dragX.get() + velocity * 0.2, {
+      const inertiaControls = animate(dragX, dragX.get() + velocity * 0.1, {
         type: "inertia",
         velocity,
-        power: 0.8,
+        power: 0.3,
         timeConstant: 325,
         bounce: 0,
-        restDelta: 3,
+        restDelta: 10,
       });
       inertiaRef.current = inertiaControls.stop;
       inertiaControls.finished.then(startSnap).then(() => {
@@ -190,8 +177,8 @@ export default function Carousel<T>({
       Math.round(dragX.get() / layoutData.snapSize) * layoutData.snapSize,
       {
         type: "spring",
-        stiffness: 700,
-        damping: 40,
+        stiffness: 1000,
+        damping: 50,
         mass: 0.5,
       }
     );
@@ -240,7 +227,7 @@ export default function Carousel<T>({
   };
 
   // Flip to the next or previous card.
-  const onNext = (toRight: boolean): void => {
+  const onNext: onNextCbType = (toRight) => {
     const currentIndex = getMidCardIndex();
     const targetIndex = toRight
       ? (currentIndex + 1) % contentList.length
@@ -362,102 +349,18 @@ export default function Carousel<T>({
           </LayoutContext>
         </motion.div>
         <ul className="flex justify-center items-center gap-2 pb-2">
-          <motion.button
-            className="size-10 rounded-full bg-white/50 flex justify-center items-center mr-4"
-            whileHover={{
-              boxShadow: "0 0 3px 2px rgba(255,255,255,0.5)",
-            }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => onNext(false)}
-          >
-            <ChevronLeftIcon className="size-8" />
-          </motion.button>
+          <NextButton isToRight={false} onNext={onNext} />
           {contentList.map((_, i) => (
-            <motion.li
+            <Dot
               key={i}
-              onClick={() => onScroll(i)}
-              className="size-4 bg-white rounded-full"
-              initial={{ width: 16, opacity: 0.5 }}
-              animate={{
-                width: viewContentIndex === i ? 32 : 16,
-                opacity: viewContentIndex === i ? 1 : 0.5,
-              }}
-              whileHover={{
-                boxShadow: "0 0 3px 2px rgba(255,255,255,0.8)",
-                scale: 1.1,
-              }}
-              whileTap={{ scale: 0.9 }}
+              index={i}
+              onScroll={onScroll}
+              viewContentIndex={viewContentIndex}
             />
           ))}
-          <motion.button
-            className="size-10 rounded-full bg-white/50 flex justify-center items-center ml-4"
-            whileHover={{
-              boxShadow: "0 0 3px 2px rgba(255,255,255,0.5)",
-            }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => onNext(true)}
-          >
-            <ChevronRightIcon className="size-8" />
-          </motion.button>
+          <NextButton isToRight={true} onNext={onNext} />
         </ul>
       </div>
     </MotionContainer>
-  );
-}
-
-function Card({
-  dragX,
-  data,
-}: {
-  dragX: MotionValue<number>;
-  data: cardDataType;
-}) {
-  const layoutContext = useContext(LayoutContext);
-  if (!layoutContext) {
-    throw new Error("LayoutContext cannot be undefined.");
-  }
-
-  const ratio = useTransform(() => {
-    // The position offset from the card centered in the view.
-    const offset = dragX.get() + data.offset;
-    // Return percentage of how far the card is away from the view center, clamping between -1 and 1. The denominator can be adjusted to define the farthest point considered as 0.
-    return Math.max(Math.min(offset / layoutContext.snapSize, 1), -1);
-  });
-
-  const opacity = useTransform(ratio, [-1, 0, 1], [0.2, 1, 0.2]);
-  const rotateY = useTransform(ratio, [-1, 0, 1], [20, 0, -20]);
-  const scale = useTransform(ratio, [-1, 0, 1], [0.7, 1, 0.7]);
-  // Translate the inside div a bit closer to the center card.
-  const translateX = useTransform(ratio, [-1, 0, 1], ["40%", "0%", "-40%"]);
-  const zIndex = useTransform(ratio, [-1, 0, 1], [0, 1, 0]);
-
-  return (
-    <motion.li
-      className="absolute top-0 left-0 "
-      style={{
-        width: `${layoutContext.cardWidth}px`,
-        height: `${layoutContext.cardHeight}px`,
-        zIndex,
-      }}
-    >
-      <motion.div
-        className="relative size-full bg-amber-500
-                 flex justify-center items-center
-                 rounded-2xl will-change-auto"
-        style={{
-          opacity,
-          rotateY,
-          scale,
-          translateX,
-        }}
-        transformTemplate={(_, generatedTransform) =>
-          `perspective(400px) ${generatedTransform}`
-        }
-      >
-        <layoutContext.CardComponent
-          content={layoutContext.contentList[data.index]}
-        />
-      </motion.div>
-    </motion.li>
   );
 }

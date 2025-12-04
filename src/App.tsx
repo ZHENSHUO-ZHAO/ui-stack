@@ -1,6 +1,6 @@
-import Carousel from "./animations/Carousel";
-import { getContent } from "./animations/carouselContent";
-import { CardItem } from "./animations/CarouselItem";
+import Carousel from "./animations/Carousel/Carousel";
+import { getContent } from "./animations/Carousel/carouselContent";
+import { CardItem } from "./animations/Carousel/CarouselItem";
 
 function App() {
   return (
