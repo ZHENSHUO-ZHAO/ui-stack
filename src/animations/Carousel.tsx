@@ -1,7 +1,6 @@
 import {
   animate,
   motion,
-  scale,
   useMotionValue,
   useMotionValueEvent,
   useTransform,
@@ -28,11 +27,6 @@ type layoutDataType<T> = {
   snapSize: number;
   contentList: T[];
   CardComponent: React.ComponentType<cardItemType<T>>;
-};
-
-type cardHolderPropType = {
-  initialIdex: number;
-  ref: RefObject<Dispatch<SetStateAction<number>> | null>;
 };
 
 type cardDataType = {
@@ -432,10 +426,6 @@ function Card({
     throw new Error("LayoutContext cannot be undefined.");
   }
 
-  const indexRef = useRef<number>(data.index);
-  const setIndexRef =
-    useRef<React.Dispatch<React.SetStateAction<number>>>(null);
-
   const ratio = useTransform(() => {
     // The position offset from the card centered in the view.
     const offset = dragX.get() + data.offset;
@@ -449,13 +439,6 @@ function Card({
   // Translate the inside div a bit closer to the center card.
   const translateX = useTransform(ratio, [-1, 0, 1], ["40%", "0%", "-40%"]);
   const zIndex = useTransform(ratio, [-1, 0, 1], [0, 1, 0]);
-
-  useEffect(() => {
-    if (indexRef.current !== data.index) {
-      indexRef.current = data.index;
-      setIndexRef.current?.(data.index);
-    }
-  }, [data.index]);
 
   return (
     <motion.li
@@ -480,27 +463,10 @@ function Card({
           `perspective(400px) ${generatedTransform}`
         }
       >
-        <CardContentHolder initialIdex={indexRef.current} ref={setIndexRef} />
+        <layoutContext.CardComponent
+          content={layoutContext.contentList[data.index]}
+        />
       </motion.div>
     </motion.li>
-  );
-}
-
-function CardContentHolder({ initialIdex, ref }: cardHolderPropType) {
-  const layoutContext = useContext(LayoutContext);
-  if (!layoutContext) {
-    throw new Error("LayoutContext cannot be undefined.");
-  }
-
-  const [index, setIndex] = useState<number>(initialIdex);
-
-  useEffect(() => {
-    ref.current = setIndex;
-  }, []);
-
-  return (
-    <>
-      <layoutContext.CardComponent content={layoutContext.contentList[index]} />
-    </>
   );
 }
