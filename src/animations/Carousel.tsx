@@ -8,16 +8,7 @@ import {
   type PanInfo,
 } from "motion/react";
 import MotionContainer from "./MotionContainer";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-} from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 
 type layoutDataType<T> = {
