@@ -22,6 +22,7 @@ export default function Carousel<T>({
     CardComponent,
   });
 
+  // Calculate the layout information for the Carousel inside when container size changes.
   useEffect(() => {
     if (size.width != 0) {
       const cardWidth = size.width * 0.5;
@@ -32,7 +33,6 @@ export default function Carousel<T>({
         baseX: -2 * cardWidth,
         snapSize: cardWidth,
       });
-      // console.log(`cardWidth = ${cardWidth}, size.width = ${size.width}`);
     }
   }, [size.width]);
 

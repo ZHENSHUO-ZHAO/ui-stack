@@ -6,6 +6,7 @@ export default function Dot({
   onScroll,
   viewContentIndex,
 }: dotPropType) {
+  // Width is responsive to its parent.
   return (
     <motion.li
       onClick={() => onScroll(index)}

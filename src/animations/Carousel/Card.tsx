@@ -3,6 +3,7 @@ import { useContext } from "react";
 import type { cardPropType } from "./carouselTypes";
 import { LayoutContext } from "./layoutContext";
 
+// Card component use as a content holder in the Carousel.
 export default function Card({ dragX, data }: cardPropType) {
   const layoutContext = useContext(LayoutContext);
   if (!layoutContext) {
