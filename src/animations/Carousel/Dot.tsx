@@ -9,10 +9,10 @@ export default function Dot({
   return (
     <motion.li
       onClick={() => onScroll(index)}
-      className="size-4 bg-white rounded-full"
-      initial={{ width: 16, opacity: 0.5 }}
+      className="bg-white rounded-full min-h-3 max-h-5"
+      initial={{ width: "4%", opacity: 0.5 }}
       animate={{
-        width: viewContentIndex === index ? 32 : 16,
+        width: viewContentIndex === index ? "16%" : "4%",
         opacity: viewContentIndex === index ? 1 : 0.5,
       }}
       whileHover={{

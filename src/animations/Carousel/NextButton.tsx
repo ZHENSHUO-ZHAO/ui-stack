@@ -5,7 +5,7 @@ import type { nextButtonPropType } from "./carouselTypes";
 export default function NextButton({ isToRight, onNext }: nextButtonPropType) {
   return (
     <motion.button
-      className="size-10 rounded-full bg-white/50 flex justify-center items-center mr-4"
+      className="size-11 rounded-full bg-white/50 flex justify-center items-center mx-4"
       whileHover={{
         boxShadow: "0 0 3px 2px rgba(255,255,255,0.5)",
       }}
