@@ -169,11 +169,11 @@ export default function CarouselContent<T>({
     if (velocity !== 0) {
       const inertiaControls = animate(dragX, dragX.get() + velocity * 0.1, {
         type: "inertia",
-        velocity,
+        velocity: velocity * 0.6,
         power: 0.3,
         timeConstant: 325,
         bounce: 0,
-        restDelta: 10,
+        restDelta: 20,
       });
       inertiaRef.current = inertiaControls.stop;
       inertiaControls.finished.then(startSnap).then(() => {
@@ -192,7 +192,7 @@ export default function CarouselContent<T>({
       Math.round(dragX.get() / layoutData.snapSize) * layoutData.snapSize,
       {
         type: "spring",
-        stiffness: 1000,
+        stiffness: 3000,
         damping: 50,
         mass: 0.5,
       }
@@ -333,42 +333,49 @@ export default function CarouselContent<T>({
 
   return (
     <>
-      <motion.div
-        ref={containerRef}
-        dragConstraints={{ left: 0, right: 0 }}
-        drag="x"
-        className="relative flex-none flex justify-center"
-        dragMomentum={false}
-        dragElastic={0}
-        onDragStart={onDragStart}
-        onDrag={onDrag}
-        onDragEnd={onDragEnd}
+      {/* This div is the holder for the drag view as well as the buttons. The buttons cannot be inside the drag view as the maskImage dim the button due to its opacity gradients. The buttons group use absolute position to overlay the drag view aligning with the center of the drag view vertically. */}
+      <div
+        className="relative"
         style={{
           width: `${layoutData.cardWidth * 2}px`,
           height: `${layoutData.cardHeight}px`,
-          maskImage: `linear-gradient(90deg, #0000, #000 10%, #000 90%, #0000)`,
         }}
       >
-        <LayoutContext value={layoutData as layoutDataType<unknown>}>
-          <motion.ul
-            ref={cardsHolderRef}
-            className="relative will-change-transform"
-            style={{
-              width: `${layoutData.cardWidth}px`,
-              height: `${layoutData.cardHeight}px`,
-              x: dragX,
-            }}
-          >
-            {Array.from({ length: cardCount }).map((_, i) => (
-              <Card key={i} dragX={dragX} data={cardsRef.current[i]} />
-            ))}
-          </motion.ul>
-          <div className="absolute inset-0 flex justify-between items-center">
-            <NextButton isToRight={false} onNext={onNext} />
-            <NextButton isToRight={true} onNext={onNext} />
-          </div>
-        </LayoutContext>
-      </motion.div>
+        <motion.div
+          ref={containerRef}
+          dragConstraints={{ left: 0, right: 0 }}
+          drag="x"
+          className="relative size-full flex-none flex justify-center"
+          dragMomentum={false}
+          dragElastic={0}
+          onDragStart={onDragStart}
+          onDrag={onDrag}
+          onDragEnd={onDragEnd}
+          style={{
+            maskImage: `linear-gradient(90deg, #0000, #000 10%, #000 90%, #0000)`,
+          }}
+        >
+          <LayoutContext value={layoutData as layoutDataType<unknown>}>
+            <motion.ul
+              ref={cardsHolderRef}
+              className="relative will-change-transform"
+              style={{
+                width: `${layoutData.cardWidth}px`,
+                height: `${layoutData.cardHeight}px`,
+                x: dragX,
+              }}
+            >
+              {Array.from({ length: cardCount }).map((_, i) => (
+                <Card key={i} dragX={dragX} data={cardsRef.current[i]} />
+              ))}
+            </motion.ul>
+          </LayoutContext>
+        </motion.div>
+        <div className="absolute inset-0 flex justify-between items-center pointer-events-none">
+          <NextButton isToRight={false} onNext={onNext} />
+          <NextButton isToRight={true} onNext={onNext} />
+        </div>
+      </div>
       <ul
         className="flex justify-center items-center gap-2 pb-2 px-2"
         style={{

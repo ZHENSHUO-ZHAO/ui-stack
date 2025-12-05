@@ -39,7 +39,7 @@ export default function Carousel<T>({
   return (
     <div
       ref={ref}
-      className="overflow-hidden flex flex-col justify-center items-center gap-5 w-full"
+      className="relative overflow-hidden flex flex-col justify-center items-center gap-5 w-full"
     >
       {Number.isNaN(layoutData.cardWidth) || (
         <CarouselContent layoutData={layoutData} />
