@@ -9,7 +9,7 @@ export default function NextButton({ isToRight, onNext }: nextButtonPropType) {
       whileHover={{
         boxShadow: "0 0 3px 2px rgba(255,255,255,0.5)",
       }}
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.9, boxShadow: "0 0 3px 2px rgba(255,255,255,0.5)" }}
       onClick={() => onNext(isToRight)}
     >
       {isToRight ? (

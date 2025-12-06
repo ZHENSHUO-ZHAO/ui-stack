@@ -20,7 +20,7 @@ export default function Dot({
         boxShadow: "0 0 3px 2px rgba(255,255,255,0.8)",
         scale: 1.1,
       }}
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.9, boxShadow: "0 0 3px 2px rgba(255,255,255,0.8)" }}
     />
   );
 }

@@ -136,6 +136,7 @@ export default function CarouselContent<T>({
   }, [layoutData]);
 
   const cleanupAnimations = () => {
+    // console.log(`cleanupAnimations`);
     if (dragDataRef.current.scrollTimeout) {
       clearTimeout(dragDataRef.current.scrollTimeout);
       dragDataRef.current.scrollTimeout = null;
@@ -151,17 +152,20 @@ export default function CarouselContent<T>({
   };
 
   const onDragStart = () => {
+    // console.log(`onDragStart`);
     cleanupAnimations();
     dragDataRef.current.isDragging = true;
   };
 
   const onDrag = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // console.log(`onDrag`);
     if (dragDataRef.current.isDragging) {
       dragX.set(info.offset.x + dragDataRef.current.x);
     }
   };
 
   const onDragEnd = () => {
+    // console.log(`onDragEnd`);
     // Use inertia to create the slow down animation once the drag stops.
     dragDataRef.current.isDragging = false;
     const velocity = dragX.getVelocity();
@@ -187,6 +191,7 @@ export default function CarouselContent<T>({
   };
 
   const startSnap = () => {
+    // console.log(`startSnap`);
     const springControls = animate(
       dragX,
       Math.round(dragX.get() / layoutData.snapSize) * layoutData.snapSize,
@@ -218,7 +223,9 @@ export default function CarouselContent<T>({
 
   // Scroll to the card corresponding to the clicked dot index.
   const onScroll = (index: number) => {
+    // console.log(`onScroll`);
     let indexOffset = index - getMidCardIndex();
+    if (indexOffset === 0) return;
     if (Math.abs(indexOffset) === layoutData.contentList.length - 1) {
       indexOffset = indexOffset < 0 ? 1 : -1;
     }
@@ -242,6 +249,7 @@ export default function CarouselContent<T>({
 
   // Flip to the next or previous card.
   const onNext: onNextCbType = (toRight) => {
+    // console.log(`onNext`);
     const currentIndex = getMidCardIndex();
     const targetIndex = toRight
       ? (currentIndex + 1) % layoutData.contentList.length
@@ -262,10 +270,17 @@ export default function CarouselContent<T>({
     data.boundaryL += offset;
     data.boundaryR += offset;
 
+    /*
+    The 'isDiffTiny is to check if the difference between the boundary and the view is larger than 1 pixel. Otherwise, this tiny fraction shouldn't be considered to proceed the following calculations. This is due to the notorious floating-point issue in JS. For example, when the drag is triggered by the arrow buttons on the two sides, it should move one card only. However, the offset can be cumulated to the boundaries to something like the following:
+    data.boundaryR = 999.9999999999999 data.viewR = 1000 diff = -1.1368683772161603e-13
+    The boundary should've equaled to the view. This tiny differences make it move one extra card. This moving card logic affects the viewContentIndex calculations. Consequently, the dot highlighted in one step further, making it out of sync with the index of the viewing card.
+    */
+    const isDiffTiny = Math.abs(data.boundaryR - data.viewR) < 1;
+
     // When dragging left, check if the right boundary is far enough to cover the rightmost of the view, and vice verser.
     if (
-      (offset < 0 && data.boundaryR < data.viewR) ||
-      (offset > 0 && data.boundaryL > data.viewL)
+      (!isDiffTiny && offset < 0 && data.boundaryR < data.viewR) ||
+      (!isDiffTiny && offset > 0 && data.boundaryL > data.viewL)
     ) {
       // Calculate the least number of card to be teleport to cover the view's corresponding empty space left by the drag.
       const offsetCount = Math.ceil(Math.abs(offset) / layoutData.snapSize);

@@ -23,6 +23,11 @@ export default function Card({ dragX, data }: cardPropType) {
   // Translate the inside div a bit closer to the center card.
   const translateX = useTransform(ratio, [-1, 0, 1], ["40%", "0%", "-40%"]);
   const zIndex = useTransform(ratio, [-1, 0, 1], [0, 1, 0]);
+  // const filter = useTransform(
+  //   ratio,
+  //   [-1, 0, 1],
+  //   ["blur(2px)", "blur(0px)", "blur(2px)"]
+  // );
 
   return (
     <motion.li
@@ -42,6 +47,7 @@ export default function Card({ dragX, data }: cardPropType) {
           rotateY,
           scale,
           translateX,
+          // filter,
         }}
         transformTemplate={(_, generatedTransform) =>
           `perspective(400px) ${generatedTransform}`
